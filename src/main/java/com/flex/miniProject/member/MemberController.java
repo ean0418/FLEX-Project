@@ -69,6 +69,7 @@ public class MemberController {
         return "index";
     }
 
+
     @RequestMapping(value = "/member.id.check", method = RequestMethod.GET, produces = "application/json; charset=UTF-8")
     public @ResponseBody Members memberIdCheck(Bizone_member m) {
         return mDAO.memberIdCheck(m);
@@ -84,7 +85,7 @@ public class MemberController {
 
         // 로그인 상태 확인 후 success.jsp로 이동 여부 결정
         if (mDAO.loginCheck(req)) {
-            req.setAttribute("contentPage", "main/main.jsp");
+            req.setAttribute("contentPage", "map/map.jsp");
             return "index";  // 로그인 성공 시 메인 페이지로 이동
         } else {
             req.setAttribute("contentPage", "member/login.jsp");

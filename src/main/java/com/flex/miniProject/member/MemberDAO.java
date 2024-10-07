@@ -35,6 +35,7 @@ public class MemberDAO {
     @Autowired
     private SqlSession ss;
 
+
     public boolean checkIfIdExists(String bm_id) {
         Integer count = ss.selectOne("MemberMapper.checkIfIdExists", bm_id);
         System.out.println("ID Count: " + count);  // 로그 출력
