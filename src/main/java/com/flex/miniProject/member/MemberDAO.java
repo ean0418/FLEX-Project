@@ -26,6 +26,8 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Random;
 
@@ -42,34 +44,6 @@ public class MemberDAO {
         return count != null && count > 0;
     }
 
-    private String getAccessToken(String code) throws IOException {
-// HTTP Header 생성
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
-// HTTP Body 생성
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("client_id", "카카오developer에서 받은 restApiKey");
-        body.add("redirect_uri", "http://서버IP/user/kakao/callback");
-        body.add("code", code);
-
-// HTTP 요청 보내기
-        HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
-        ResponseEntity<String> response = rt.exchange(
-                "https://kauth.kakao.com/oauth/token",
-                HttpMethod.POST,
-                kakaoTokenRequest,
-                String.class
-        );
-
-// HTTP 응답 (JSON) -> 액세스 토큰 파싱
-        String responseBody = response.getBody();
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(responseBody);
-        return jsonNode.get("access_token").asText();
-    }
 
 
     public void signupMember(HttpServletRequest req, Bizone_member m) {
@@ -165,41 +139,46 @@ public class MemberDAO {
     }
 
     public void update(HttpServletRequest req) {
-
+        Bizone_member loginMember = (Bizone_member) req.getSession().getAttribute("loginMember");
         Bizone_member m = (Bizone_member) req.getSession().getAttribute("loginMember");
-
-
+        // 세션에 저장된 loginMember 객체와 bm_id 값 확인
+        if (loginMember != null) {
+            System.out.println("Session loginMember ID: " + loginMember.getBm_id());
+        } else {
+            System.out.println("loginMember is null in session");
+        }
         try {
+            // 파라미터 값을 로그로 확인
+            System.out.println("Update ID: " + req.getParameter("bm_id"));
+
             m.setBm_id(req.getParameter("bm_id"));
             m.setBm_pw(req.getParameter("bm_pw"));
             m.setBm_name(req.getParameter("bm_name"));
-            m.setBm_name(req.getParameter("bm_nickname"));
+            m.setBm_nickname(req.getParameter("bm_nickname"));
             m.setBm_phoneNum(req.getParameter("bm_phoneNum"));
             m.setBm_mail(req.getParameter("bm_mail"));
 
-            String bm_addr1 = req.getParameter("bm_addr1");
-            String bm_addr2 = req.getParameter("bm_addr2");
-            String bm_addr3 = req.getParameter("bm_addr3");
-            String bm_address = bm_addr2 + "!" + bm_addr3 + "!" + bm_addr1;
-            m.setBm_address(bm_address);
+            String bm_birthday = req.getParameter("bm_birthday");
+            if (bm_birthday != null && !bm_birthday.isEmpty()) {
+                Date birthdayDate = Date.valueOf(bm_birthday);
+                m.setBm_birthday(birthdayDate);
+            }
 
-            if (ss.getMapper(MemberMapper.class).updateMember(m) == 1) {
+            m.setBm_address(req.getParameter("bm_address"));
+
+            int result = ss.getMapper(MemberMapper.class).updateMember(m);
+            System.out.println("Update Result: " + result); // 업데이트 성공 여부 로그 확인
+            if (result == 1) {
                 req.setAttribute("r", "정보 수정 성공");
-
                 req.getSession().setAttribute("loginMember", m);
             } else {
                 req.setAttribute("r", "정보 수정 실패");
-
             }
         } catch (Exception e) {
             e.printStackTrace();
             req.setAttribute("r", "정보 수정 실패");
-
         }
-
-
     }
-
 
 }
 

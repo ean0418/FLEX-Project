@@ -80,6 +80,10 @@ function updateCheck() {
     let bm_birthday = document.updateForm.bm_birthday;
     let bm_mail = document.updateForm.bm_mail;
 
+        if (document.updateForm.bm_id.value === "") {
+            alert("아이디를 입력해 주세요.");
+            return false;
+        }
     if (isEmpty(bm_pw) || notEqualPw(bm_pw, bm_pw_confirm)) {
         alert("Please Fill in Password Properly.");
         bm_pw.value = "";
